@@ -192,11 +192,15 @@ void matrix_multiply_unopt(struct fn_args *args)
 
 /**
  * 1. added ints and array to reg (1.3)
+ * 2. stored i * n and i * n + j in reg (1.7) - better, these variable name suck
+ * 3. unrolled by 8 (2.5) - even better, this is kinda gross though
+ * 4. stored k*n+j in an int (2.5) still..
  */
 void matrix_multiply_opt(struct fn_args *args)
 {
     register int i, j, k, n;
     register int *mat1, *mat2, *res;
+    register int iTimesn, inplusJ, knj, temp1, temp2;
 
     n = args->n;
     mat1 = args->mem1;
@@ -205,12 +209,33 @@ void matrix_multiply_opt(struct fn_args *args)
 
     for (i = 0; i < n; i++)
     {
-        for (j = 0; j < n; j++)
+        iTimesn = i * n;
+        for (j = 0; j < n; j += 8)
         {
-            res[i * n + j] = 0;
+            inplusJ = iTimesn + j;
+            res[inplusJ] = 0;
+            res[inplusJ + 1] = 0;
+            res[inplusJ + 2] = 0;
+            res[inplusJ + 3] = 0;
+            res[inplusJ + 4] = 0;
+            res[inplusJ + 5] = 0;
+            res[inplusJ + 6] = 0;
+            res[inplusJ + 7] = 0;
+
+            // Unrolled loop for k with a factor of 8
             for (k = 0; k < n; k++)
             {
-                res[i * n + j] += mat1[i * n + k] * mat2[k * n + j];
+                knj = k * n + j;
+                temp1 = mat1[iTimesn + k];
+                temp2 = mat2[knj];
+                res[inplusJ] += temp1 * temp2;
+                res[inplusJ + 1] += temp1 * mat2[knj + 1];
+                res[inplusJ + 2] += temp1 * mat2[knj + 2];
+                res[inplusJ + 3] += temp1 * mat2[knj + 3];
+                res[inplusJ + 4] += temp1 * mat2[knj + 4];
+                res[inplusJ + 5] += temp1 * mat2[knj + 5];
+                res[inplusJ + 6] += temp1 * mat2[knj + 6];
+                res[inplusJ + 7] += temp1 * mat2[knj + 7];
             }
         }
     }
