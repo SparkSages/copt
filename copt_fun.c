@@ -25,8 +25,8 @@
  ******************************************************************************/
 
 /******************************************************************************
- * Name:          <your name here>
- * Collaboration: <collaborator names here--one per line>
+ * Name:          Brendan Dalhover
+ * Collaboration: Jake Hebert (He used some witchcraft and it looked cool)
  ******************************************************************************/
 
 int check(int x, int y)
@@ -118,10 +118,10 @@ void array_initialize_unopt(struct fn_args *args)
 
 /**
  * 1. moved ints to reg (2.3x Speedup)
- * 2. moved mod outside the loop
- *
- *
- *
+ * 2. moved mod outside the loop (2.1) - slower
+ * 3. Did arithmetic (Mod * Z) outside loop (2.4)
+ * 4. unroll loop by a factor of 12 (2.5)
+ * 5.
  *
  *
  */
@@ -129,14 +129,24 @@ void array_initialize_unopt(struct fn_args *args)
 void array_initialize_opt(struct fn_args *args)
 {
     register int i, mod, n, *arr;
-    mod = X % Y;
-
+    mod = (X % Y) * Z;
     n = args->n;
     arr = args->mem1;
-    for (i = 0; i < n; i++)
-    {
 
-        arr[i] = i * mod * Z;
+    for (i = 0; i < n; i += 12)
+    {
+        arr[i] = i * mod;
+        arr[i + 1] = (i + 1) * mod;
+        arr[i + 2] = (i + 2) * mod;
+        arr[i + 3] = (i + 3) * mod;
+        arr[i + 4] = (i + 4) * mod;
+        arr[i + 5] = (i + 5) * mod;
+        arr[i + 6] = (i + 6) * mod;
+        arr[i + 7] = (i + 7) * mod;
+        arr[i + 8] = (i + 8) * mod;
+        arr[i + 9] = (i + 9) * mod;
+        arr[i + 10] = (i + 10) * mod;
+        arr[i + 11] = (i + 11) * mod;
     }
 }
 
@@ -154,7 +164,7 @@ void factorial_unopt(struct fn_args *args)
 
 void factorial_opt(struct fn_args *args)
 {
-    // TODO: optimized implementation goes here
+    args->fac = factorial_unopt_helper((unsigned long long)args->n);
 }
 
 void matrix_multiply_unopt(struct fn_args *args)
@@ -180,7 +190,28 @@ void matrix_multiply_unopt(struct fn_args *args)
     }
 }
 
+/**
+ * 1. added ints and array to reg (1.3)
+ */
 void matrix_multiply_opt(struct fn_args *args)
 {
-    // TODO: optimized implementation goes here
+    register int i, j, k, n;
+    register int *mat1, *mat2, *res;
+
+    n = args->n;
+    mat1 = args->mem1;
+    mat2 = args->mem2;
+    res = args->mem3;
+
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            res[i * n + j] = 0;
+            for (k = 0; k < n; k++)
+            {
+                res[i * n + j] += mat1[i * n + k] * mat2[k * n + j];
+            }
+        }
+    }
 }

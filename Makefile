@@ -55,7 +55,7 @@ test_mat_init: copt copt2
 	./$(COPT_EXE2) 0 3000 200; echo ""
 
 test_arr_init: copt
-	./$(COPT_EXE) 1 30000 2000; echo ""
+	./$(COPT_EXE) 1 300000 20000; echo ""
 
 test_fact: copt
 	./$(COPT_EXE) 2 20 200000000; echo ""
