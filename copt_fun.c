@@ -118,7 +118,7 @@ void array_initialize_unopt(struct fn_args *args)
 
 /**
  * 1. moved ints to reg (2.3x Speedup)
- *
+ * 2. moved mod outside the loop
  *
  *
  *
@@ -129,12 +129,13 @@ void array_initialize_unopt(struct fn_args *args)
 void array_initialize_opt(struct fn_args *args)
 {
     register int i, mod, n, *arr;
+    mod = X % Y;
 
     n = args->n;
     arr = args->mem1;
     for (i = 0; i < n; i++)
     {
-        mod = X % Y;
+
         arr[i] = i * mod * Z;
     }
 }
