@@ -121,9 +121,6 @@ void array_initialize_unopt(struct fn_args *args)
  * 2. moved mod outside the loop (2.1) - slower
  * 3. Did arithmetic (Mod * Z) outside loop (2.4)
  * 4. unroll loop by a factor of 12 (2.5)
- * 5.
- *
- *
  */
 
 void array_initialize_opt(struct fn_args *args)
@@ -162,6 +159,12 @@ void factorial_unopt(struct fn_args *args)
     args->fac = factorial_unopt_helper((unsigned long long)args->n);
 }
 
+/**
+ *
+ *
+ *
+ *
+ */
 void factorial_opt(struct fn_args *args)
 {
     args->fac = factorial_unopt_helper((unsigned long long)args->n);
@@ -222,7 +225,6 @@ void matrix_multiply_opt(struct fn_args *args)
             res[inplusJ + 6] = 0;
             res[inplusJ + 7] = 0;
 
-            // Unrolled loop for k with a factor of 8
             for (k = 0; k < n; k++)
             {
                 knj = k * n + j;
