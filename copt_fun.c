@@ -1,4 +1,7 @@
 #include "copt_fun.h"
+#include <stdlib.h>
+#include <pthread.h>
+#include <omp.h>
 
 /******************************************************************************
  * Usage: copt OP N LOOP
@@ -26,7 +29,6 @@
 
 /******************************************************************************
  * Name:          Brendan Dalhover
- * Collaboration: Jake Hebert (He used some witchcraft and it looked cool)
  ******************************************************************************/
 
 int check(int x, int y)
@@ -121,29 +123,66 @@ void array_initialize_unopt(struct fn_args *args)
  * 2. moved mod outside the loop (2.1) - slower
  * 3. Did arithmetic (Mod * Z) outside loop (2.4)
  * 4. unroll loop by a factor of 12 (2.5)
+ * 5. parallelized the loop with 4 threads and divided the work into chunks. (7.1)
+ * 6. lets try with all 24 threads. (2.5) - slower
+ * 7. use 2 threads instead of 4 (15) - Much faster. I think this is caused by the overhead of creating and joining the threads back together
  */
+
+struct ThreadArgs
+{
+    int start_index;
+    int end_index;
+    int mod;
+    int *arr;
+};
+
+void *thread_initialize(void *arg)
+{
+    struct ThreadArgs *args = (struct ThreadArgs *)arg;
+
+    for (int i = args->start_index; i < args->end_index; i++)
+    {
+        args->arr[i] = i * args->mod;
+    }
+
+    pthread_exit(NULL);
+}
 
 void array_initialize_opt(struct fn_args *args)
 {
-    register int i, mod, n, *arr;
-    mod = (X % Y) * Z;
-    n = args->n;
-    arr = args->mem1;
+    int num_threads = 2;
+    int n = args->n;
+    int *arr = args->mem1;
+    int mod = (X % Y) * Z;
 
-    for (i = 0; i < n; i += 12)
+    // Create an array of threads
+    // basically, makes it easier to dynamically change threadcount for tests.
+    pthread_t threads[num_threads];
+
+    // Calculate the chunk size for each thread
+    // I use this to determine how much work each thread does
+    int chunk_size = n / num_threads;
+
+    // Initialize thread arguments
+    struct ThreadArgs thread_args[num_threads];
+    for (int i = 0; i < num_threads; i++)
     {
-        arr[i] = i * mod;
-        arr[i + 1] = (i + 1) * mod;
-        arr[i + 2] = (i + 2) * mod;
-        arr[i + 3] = (i + 3) * mod;
-        arr[i + 4] = (i + 4) * mod;
-        arr[i + 5] = (i + 5) * mod;
-        arr[i + 6] = (i + 6) * mod;
-        arr[i + 7] = (i + 7) * mod;
-        arr[i + 8] = (i + 8) * mod;
-        arr[i + 9] = (i + 9) * mod;
-        arr[i + 10] = (i + 10) * mod;
-        arr[i + 11] = (i + 11) * mod;
+        thread_args[i].start_index = i * chunk_size;
+        thread_args[i].end_index = (i == num_threads - 1) ? n : (i + 1) * chunk_size;
+        thread_args[i].mod = mod;
+        thread_args[i].arr = arr;
+    }
+
+    // Create and run threads
+    for (int i = 0; i < num_threads; i++)
+    {
+        pthread_create(&threads[i], NULL, thread_initialize, (void *)&thread_args[i]);
+    }
+
+    // Join threads when finished.
+    for (int i = 0; i < num_threads; i++)
+    {
+        pthread_join(threads[i], NULL);
     }
 }
 
@@ -160,14 +199,95 @@ void factorial_unopt(struct fn_args *args)
 }
 
 /**
- *
- *
- *
- *
+ *  1. Since 21! is too big for ULL, bruteforce the if logic (7.3x)
+ *  2. I dont want that to be the only thing I do for this so ill come back later if I have more time.
  */
 void factorial_opt(struct fn_args *args)
 {
-    args->fac = factorial_unopt_helper((unsigned long long)args->n);
+    // args->fac = factorial_unopt_helper((unsigned long long)args->n);
+    int n = args->n;
+    unsigned long long result = args->fac;
+    if (n == 0 || n == 1)
+    {
+        result = 1ULL;
+    }
+    else if (n == 2)
+    {
+        result = 2ULL;
+    }
+    else if (n == 3)
+    {
+        result = 6ULL;
+    }
+    else if (n == 4)
+    {
+        result = 24ULL;
+    }
+    else if (n == 5)
+    {
+        result = 120ULL;
+    }
+    else if (n == 6)
+    {
+        result = 720ULL;
+    }
+    else if (n == 7)
+    {
+        result = 5040ULL;
+    }
+    else if (n == 8)
+    {
+        result = 40320ULL;
+    }
+    else if (n == 9)
+    {
+        result = 362880ULL;
+    }
+    else if (n == 10)
+    {
+        result = 3628800ULL;
+    }
+    else if (n == 11)
+    {
+        result = 39916800ULL;
+    }
+    else if (n == 12)
+    {
+        result = 479001600ULL;
+    }
+    else if (n == 13)
+    {
+        result = 6227020800ULL;
+    }
+    else if (n == 14)
+    {
+        result = 87178291200ULL;
+    }
+    else if (n == 15)
+    {
+        result = 1307674368000ULL;
+    }
+    else if (n == 16)
+    {
+        result = 20922789888000ULL;
+    }
+    else if (n == 17)
+    {
+        result = 355687428096000ULL;
+    }
+    else if (n == 18)
+    {
+        result = 6402373705728000ULL;
+    }
+    else if (n == 19)
+    {
+        result = 121645100408832000ULL;
+    }
+    else if (n == 20)
+    {
+        result = 2432902008176640000ULL;
+    }
+    args->fac = result;
 }
 
 void matrix_multiply_unopt(struct fn_args *args)
@@ -197,11 +317,17 @@ void matrix_multiply_unopt(struct fn_args *args)
  * 1. added ints and array to reg (1.3)
  * 2. stored i * n and i * n + j in reg (1.7) - better, these variable name suck
  * 3. unrolled by 8 (2.5) - even better, this is kinda gross though
- * 4. stored k*n+j in an int (2.5) still..
+ * 4. stored k*n+j in an int (2.5) still.. time for tiling
+ * 5. Tiling with 32x32 blocks (2.7)
+ * 6. throwing more stuff in registers (2.9) so close!!
+ *
+ * Didn't end up getting to 3x speedup, but after finishing the project I feel i satisfied requirements on this specific method.
  */
+
+#define TILE_SIZE 32
 void matrix_multiply_opt(struct fn_args *args)
 {
-    register int i, j, k, n;
+    register int i, j, k, n, ii, jj, kk, ii_end, jj_end, kk_end;
     register int *mat1, *mat2, *res;
     register int iTimesn, inplusJ, knj, temp1, temp2;
 
@@ -210,34 +336,40 @@ void matrix_multiply_opt(struct fn_args *args)
     mat2 = args->mem2;
     res = args->mem3;
 
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i += TILE_SIZE)
     {
-        iTimesn = i * n;
-        for (j = 0; j < n; j += 8)
+        for (j = 0; j < n; j += TILE_SIZE)
         {
-            inplusJ = iTimesn + j;
-            res[inplusJ] = 0;
-            res[inplusJ + 1] = 0;
-            res[inplusJ + 2] = 0;
-            res[inplusJ + 3] = 0;
-            res[inplusJ + 4] = 0;
-            res[inplusJ + 5] = 0;
-            res[inplusJ + 6] = 0;
-            res[inplusJ + 7] = 0;
-
-            for (k = 0; k < n; k++)
+            for (k = 0; k < n; k += TILE_SIZE)
             {
-                knj = k * n + j;
-                temp1 = mat1[iTimesn + k];
-                temp2 = mat2[knj];
-                res[inplusJ] += temp1 * temp2;
-                res[inplusJ + 1] += temp1 * mat2[knj + 1];
-                res[inplusJ + 2] += temp1 * mat2[knj + 2];
-                res[inplusJ + 3] += temp1 * mat2[knj + 3];
-                res[inplusJ + 4] += temp1 * mat2[knj + 4];
-                res[inplusJ + 5] += temp1 * mat2[knj + 5];
-                res[inplusJ + 6] += temp1 * mat2[knj + 6];
-                res[inplusJ + 7] += temp1 * mat2[knj + 7];
+                ii_end = i + TILE_SIZE < n ? i + TILE_SIZE : n;
+                jj_end = j + TILE_SIZE < n ? j + TILE_SIZE : n;
+                kk_end = k + TILE_SIZE < n ? k + TILE_SIZE : n;
+                {
+                    for (ii = i; ii < ii_end; ii++)
+                    {
+                        iTimesn = ii * n;
+                        for (jj = j; jj < jj_end; jj += 8)
+                        {
+                            inplusJ = iTimesn + jj;
+
+                            for (kk = k; kk < kk_end; kk++)
+                            {
+                                knj = kk * n + jj;
+                                temp1 = mat1[iTimesn + kk];
+                                temp2 = mat2[knj];
+                                res[inplusJ] += temp1 * temp2;
+                                res[inplusJ + 1] += temp1 * mat2[knj + 1];
+                                res[inplusJ + 2] += temp1 * mat2[knj + 2];
+                                res[inplusJ + 3] += temp1 * mat2[knj + 3];
+                                res[inplusJ + 4] += temp1 * mat2[knj + 4];
+                                res[inplusJ + 5] += temp1 * mat2[knj + 5];
+                                res[inplusJ + 6] += temp1 * mat2[knj + 6];
+                                res[inplusJ + 7] += temp1 * mat2[knj + 7];
+                            }
+                        }
+                    }
+                }
             }
         }
     }

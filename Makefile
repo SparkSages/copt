@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -O0 -mavx2 -mfma
-CFLAGS2 = -O2 -mavx2 -mfma
-CFLAGS3 = -O3 -mavx2 -mfma
+CFLAGS = -O0 -mavx2 -mfma -fopenmp
+CFLAGS2 = -O2 -mavx2 -mfma -fopenmp
+CFLAGS3 = -O3 -mavx2 -mfma -fopenmp
 COPT_EXE = copt
 COPT_EXE2 = copt2
 COPT_EXE3 = copt3
@@ -9,13 +9,13 @@ COPT_PROF = coptprof
 PROF_FLAGS = -pg
 
 copt: copt_fun.o copt.o
-	$(CC) $(CFLAGS) copt_fun.o copt.o -o $(COPT_EXE)
+	$(CC) $(CFLAGS) copt_fun.o copt.o -o $(COPT_EXE) -fopenmp
 
 copt2: copt_fun2.o copt.o
-	$(CC) $(CFLAGS2) copt_fun2.o copt.o -o $(COPT_EXE2)
+	$(CC) $(CFLAGS2) copt_fun2.o copt.o -o $(COPT_EXE2) -fopenmp
 
 copt3: copt_fun3.o copt.out
-	$(CC) $(CFLAGS3) copt_fun3.o copt.o -o $(COPT_EXE3)
+	$(CC) $(CFLAGS3) copt_fun3.o copt.o -o $(COPT_EXE3) -fopenmp
 
 copt.o: copt.c copt.h
 	$(CC) $(CFLAGS) -c copt.c -o copt.o
@@ -67,7 +67,7 @@ clean:
 	-rm *.o $(COPT_EXE) $(COPT_EXE2)
 
 coptprof: copt_fun.o copt.o
-	$(CC) $(CFLAGS) $(PROF_FLAGS) copt_fun.o copt.o -o $(COPT_PROF)
+	$(CC) $(CFLAGS) $(PROF_FLAGS) copt_fun.o copt.o -o $(COPT_PROF) -fopenmp
 
 profile: coptprof
 	./$(COPT_PROF) 1 300000 20000
