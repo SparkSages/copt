@@ -29,6 +29,7 @@
 
 /******************************************************************************
  * Name:          Brendan Dalhover
+ * Collaborators: Jake Hebert - Gave me the runtests.sh script
  ******************************************************************************/
 
 int check(int x, int y)

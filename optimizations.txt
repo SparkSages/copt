@@ -1,11 +1,15 @@
 Test 03
-UNOPTIMIZED(ms):         783.0
-UNOPTIMIZED(ms):         383.0
-UNOPTIMIZED(ms):        1866.0
-UNOPTIMIZED(ms):        4400.0
+UNOPTIMIZED(ms):         833.0
+UNOPTIMIZED(ms):         366.0
+UNOPTIMIZED(ms):        1900.0
+UNOPTIMIZED(ms):        4750.0
 Test 02
-UNOPTIMIZED(ms):        1216.0
+UNOPTIMIZED(ms):        1233.0
+UNOPTIMIZED(ms):        1883.0
 UNOPTIMIZED(ms):        1866.0
-UNOPTIMIZED(ms):        2650.0
-UNOPTIMIZED(ms):        4316.0
+UNOPTIMIZED(ms):        5016.0
 Test
+OPTIMIZED(ms):          1350.0
+OPTIMIZED(ms):           850.0
+OPTIMIZED(ms):          1583.0
+OPTIMIZED(ms):          5917.0
